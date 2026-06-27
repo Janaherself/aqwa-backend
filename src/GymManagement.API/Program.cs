@@ -1,8 +1,11 @@
 using System.Text;
 using GymManagement.API.Middleware;
 using GymManagement.Application;
+using GymManagement.Application.Common.Interfaces;
 using GymManagement.Infrastructure;
+using GymManagement.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
@@ -60,6 +63,15 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db     = scope.ServiceProvider.GetRequiredService<GymDbContext>();
+    var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
+    var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    await DbSeeder.SeedAsync(db, hasher, config, logger);
+}
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 

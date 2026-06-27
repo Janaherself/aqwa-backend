@@ -4,9 +4,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GymManagement.Infrastructure.Persistence;
 
-public class GymDbContext(DbContextOptions<GymDbContext> options, ICurrentGymContext? gymContext = null)
-    : DbContext(options)
+public class GymDbContext : DbContext
 {
+    private readonly ICurrentGymContext? _gymContext;
+
+    public GymDbContext(DbContextOptions<GymDbContext> options, ICurrentGymContext? gymContext = null)
+        : base(options)
+    {
+        _gymContext = gymContext;
+    }
+
     public DbSet<Gym> Gyms => Set<Gym>();
     public DbSet<Member> Members => Set<Member>();
     public DbSet<Measurement> Measurements => Set<Measurement>();
@@ -16,19 +23,20 @@ public class GymDbContext(DbContextOptions<GymDbContext> options, ICurrentGymCon
     public DbSet<User> Users => Set<User>();
     public DbSet<Role> Roles => Set<Role>();
 
+    // EF Core evaluates this property at query-execution time (not model-build time)
+    // because it is a member access on the DbContext instance.
+    // Guid.Empty means "no active gym" (seeding / background context) → filter is bypassed.
+    private Guid ActiveGymId => _gymContext?.GymId ?? Guid.Empty;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(GymDbContext).Assembly);
 
-        if (gymContext is not null)
-        {
-            var gymId = gymContext.GymId;
-            modelBuilder.Entity<Member>().HasQueryFilter(m => m.GymId == gymId);
-            modelBuilder.Entity<SubscriptionPlan>().HasQueryFilter(p => p.GymId == gymId);
-            modelBuilder.Entity<Offer>().HasQueryFilter(o => o.GymId == gymId);
-            modelBuilder.Entity<User>().HasQueryFilter(u => u.GymId == gymId);
-            modelBuilder.Entity<Role>().HasQueryFilter(r => r.GymId == gymId);
-        }
+        modelBuilder.Entity<Member>().HasQueryFilter(m => ActiveGymId == Guid.Empty || m.GymId == ActiveGymId);
+        modelBuilder.Entity<SubscriptionPlan>().HasQueryFilter(p => ActiveGymId == Guid.Empty || p.GymId == ActiveGymId);
+        modelBuilder.Entity<Offer>().HasQueryFilter(o => ActiveGymId == Guid.Empty || o.GymId == ActiveGymId);
+        modelBuilder.Entity<User>().HasQueryFilter(u => ActiveGymId == Guid.Empty || u.GymId == ActiveGymId);
+        modelBuilder.Entity<Role>().HasQueryFilter(r => ActiveGymId == Guid.Empty || r.GymId == ActiveGymId);
     }
 }
