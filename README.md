@@ -19,7 +19,7 @@
 
 ## 🔍 Overview
 
-This is the backend service for the Gym Management System. It exposes a RESTful API consumed by the React frontend and is responsible for all business logic: member lifecycle, subscription tracking, plan/offer management, body measurement history, and staff operations.
+This is the backend service for the Gym Management System, AQWA. It exposes a RESTful API consumed by the React frontend and is responsible for all business logic: member lifecycle, subscription tracking, plan/offer management, body measurement history, and staff operations.
 
 ---
 
