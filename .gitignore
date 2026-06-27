@@ -1,0 +1,35 @@
+# Build outputs
+bin/
+obj/
+out/
+dist/
+
+# .NET artifacts
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+TestResults/
+
+# Published output
+publish/
+
+# EF Core migrations SQLite snapshot (keep .cs migration files, ignore these)
+*.db
+*.db-shm
+*.db-wal
+
+# Secrets and config overrides
+appsettings.Development.json
+appsettings.Production.json
+secrets.json
+*.pfx
+*.p12
+
+# OS and editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
